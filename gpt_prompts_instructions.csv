@@ -1,0 +1,628 @@
+Sentence Type,GPT Instructions
+Resultatives,"Update the AMR to use the constructional roleset resultative-91 when the sentence expresses a RESULTATIVE construction (an event causes an entity to end up in a resulting state/role/location).
+
+I will give you a sentence and AMR graph with a resultative construction within it.
+
+Example sentences  Resultative Construction:
+Could he shriek himself unconscious? 
+Firefighters cut the man free
+He had often drunk himself silly
+
+With various OBL types: 
+He wiped the table very clean. (ADJ)
+Pop music drives him round the bend. (PP)
+They elected him president.  (NP)
+A judge ordered the recordings to be made public. (nonfinite clause) 
+
+In the auto-generated AMR for the sentence ""the man shrieked himself unconcious"" we get: 
+(z0 / shriek-01
+    :ARG0 (z1 / man
+              :ARG1-of z0)
+    :mod (z2 / unconscious))
+
+This is a Resultative Construction wherein:
+Sentence: The man shrieked himself unconscious
+Shriek.01 has the arguments:
+ARG0-PAG: shrieker
+ARG1-PPT: shriek itself, or utterance
+ARG2-GOL: unfortunate listener
+
+This can be read as: “man is treated as shrieker and thing-shrieked, shrieking event is modified as unconscious”. Which is problematic and not the actual MEANING of the sentence.
+
+We want to change this graph to instead look like this:
+
+(r / resultative-91 
+    :ARG0 (m / man)
+    :ARG1 m
+    :ARG2 (u / unconscious)
+    :ARG3 (s / shriek-01
+        :ARG0 m))
+
+Wherein we have the Resultative.91 construction:
+
+Resultative.91
+Arg0-Cause: The man
+Arg1-Patient: The man
+Arg2-Result: unconscious
+Arg3-Concomitant_Event: shriek.01
+(Arg0: The man)
+
+
+Here are some additional sentences with the orginal auto-generated AMR and the graph we transform them into:
+
+Sentence: she laughed herself silly.        
+
+auto-amr:
+(z0 / laugh-01
+    :ARG0 (z1 / she)
+    :manner (z2 / silly))     
+
+manually corrected AMR:
+(r / resultative-91 
+    :ARG0 (s / she)
+    :ARG1 s
+    :ARG2 (s2 / silly)
+    :ARG3 (l / laugh-01
+        :ARG0 s))
+
+Sentence: This nice man probably just wanted Mother to KISS him unconscious.        
+
+auto AMR:
+(z0 / probable
+    :domain (z1 / want-01
+                :ARG0 (z2 / man
+                          :ARG1-of (z3 / nice-01)
+                          :mod (z4 / this))
+                :ARG1 (z5 / kiss-01
+                          :ARG0 (z6 / person
+                                    :ARG0-of (z7 / have-rel-role-91
+                                                 :ARG1 z2
+                                                 :ARG2 (z8 / mother)))
+                          :ARG1 z2
+                          :manner (z9 / unconscious))
+                :mod (z10 / just)))        
+
+manually corrected AMR:
+(p / probable-01
+    :ARG1 (w / want-01
+        :ARG0 (m / man
+            :mod (t / this)
+            :ARG1-of (n / nice-01))
+        :ARG1 (r / resultative-91
+            :ARG0 (p / person
+                :name (n2 / name :op1 ""Mother""))
+            :ARG1 m
+            :ARG2 (u / unconscious-02
+                ARG1 m)
+            :ARG3 (k / kiss-01
+                :ARG0 p
+                :ARG1 m))
+        :mod (j / just)))
+
+Sentence: I was scared stupid by what I saw.         
+
+auto AMR:
+(z0 / scare-01
+    :ARG0 (z1 / thing
+              :ARG1-of (z2 / see-01
+                           :ARG0 (z3 / i
+                                     :mod (z4 / stupid))))
+    :ARG1 z3)""        
+
+manually corrected AMR:
+(r / resultative-91
+    :ARG0 (t / thing
+        :ARG1-of (s / see-01
+            :ARG0 (i / i)
+            :ARG1 t))
+    :ARG1 i
+    :ARG2 (s2 / stupid)
+    :ARG3 (s3 / scare-01
+        :ARG0 t
+        :ARG1 i))"
+Caused Motion,"I want you to update the graph to include the new roleset caused-motion-91.
+
+Caused motion constructions occur when the Agent is doing something that causes theme to move along or towards a goal.
+
+An example sentence with Caused Motion Construction:
+They laughed the actor off the stage
+
+Here the caused motion construction should be:
+Caused-Motion.91:
+ Arg0-cause: They
+ Arg1-theme: the actor
+ Arg2-goal: off the stage
+ Arg3-concomitant-event: laugh.01
+   (Arg0: They)
+
+An example of where the auto-generated AMR fails to capture this structure is in the following instance:
+
+The Caused Motion Construction is:
+They laughed the actor off the stage
+
+the auto generated graph is:
+(z0 / laugh-01
+    :ARG0 (z1 / they)
+    :ARG2 (z2 / person
+              :ARG0-of (z3 / act-01))
+    :location (z4 / off
+                  :op1 (z5 / stage)))
+
+This graph has the head node as Laugh.01 (mismatch with caused-motion Arg structure)
+ ARG0-PAG: laugher
+ ARG1-PPT: cognate object
+ ARG2-CAU: source of joy
+ ARG3-PRD: end state of arg0, as result of laughing
+
+Which semantically represents something like: ""They laughed at the actor off-stage""
+
+If we were to fix this to represent the actual meaning we would use caused-motion-91:
+Caused-Motion.91
+  Arg0-cause: They
+  Arg1-theme: the actor
+  Arg2-goal: off the stage
+  Arg3-concomitant-event: laugh.01
+    (Arg0: They)
+
+Another Common Current AMR Treatment (Not-As-Bad): Caused-Motion
+Sentence: After the seven hundred passengers on the train were stranded for two hours , they were GUIDED through the tunnels to a safe place .        
+
+auto AMR graph:
+(z0 / guide-01
+    :ARG1 (z1 / passenger
+              :quant 700)
+    :ARG2 (z2 / place
+              :ARG1-of (z3 / safe-01))
+    :path (z4 / tunnel)
+    :time (z5 / after
+              :op1 (z6 / strand-01
+                       :ARG1 z1
+                       :location (z7 / train)
+                       :duration (z8 / temporal-quantity
+                                     :quant 2
+                                     :unit (z9 / hour)))))
+
+Here Guide.01 (aligns with caused-motion Arg structure):
+ ARG0-PAG: guide, agent
+ ARG1-PPT: entity guided
+ ARG2-GOL: guided in/through
+ ARG3-PRD: signposts along the way
+
+We could fix it with Caused-Motion.91:
+ Arg0-cause: -
+ Arg1-theme: the seven hundred passengers 
+ Arg2-goal: to a safe place
+ Arg3-concomitant-event: guide.01
+  (Arg0: They)
+
+
+Here are some additional sentences with the orginal auto-generated AMR and the graph we want to transform them into:
+
+Sentence: She wiggled her feet out of the boots.
+
+auto-amr:
+""(z0 / wiggle-01
+    :ARG0 (z1 / she)
+    :ARG1 (z2 / foot
+              :part-of z1)
+    :direction (z3 / out-of
+                   :op1 (z4 / boot)))""
+
+manually corrected AMR:
+""(c / caused-motion-91
+    :ARG0 (s / she)
+    :ARG1 (f / foot
+              :part-of s)
+    :ARG2 (g / out-of
+              :op1 (b / boot))
+    :ARG3 (w / wiggle-01
+              :ARG0 s
+              :ARG1 f))""
+
+Sentence: The stone was THROWN across the river.
+
+auto-amr:
+""(z0 / throw-01
+    :ARG1 (z1 / stone)
+    :path (z2 / across
+              :op1 (z3 / river)))""
+
+manually corrected AMR:
+""(c / caused-motion-91
+    :ARG1 (s / stone)
+    :ARG2 (a / across
+        :op1 (r / river))
+    :ARG3 (t / throw-01
+        :ARG1 s))""
+
+Sentence: Fundamentally, everyone is entitled to a private life and - no matter who they are - they have a right not to have their personal life DRAGGED through the mud for political point scoring or for the general consumption of the public.
+
+auto-amr: 
+""(z0 / and
+    :op1 (z1 / entitle-01
+             :ARG1 (z2 / life
+                       :ARG1-of (z3 / private-02))
+             :ARG2 (z4 / everyone))
+    :op2 (z5 / right-05
+             :ARG1 z4
+             :ARG2 (z6 / drag-01
+                       :polarity -
+                       :ARG1 (z7 / life
+                                 :ARG1-of (z8 / personal-02
+                                              :ARG2 z4))
+                       :ARG2 (z9 / mud)
+                       :purpose (z10 / or
+                                     :op1 (z11 / score-01
+                                               :ARG3 (z12 / point)
+                                               :mod (z13 / politics))
+                                     :op2 (z14 / consume-01
+                                               :ARG0 (z15 / public)
+                                               :ARG1 z7
+                                               :ARG1-of (z16 / general-02))))
+             :ARG1-of (z17 / regardless-91
+                           :ARG2 z4))
+    :mod (z18 / fundamental))""
+
+manually corrected AMR:
+""(a / and
+    :op1 (e / entitle-01
+        :ARG1 (e2 / everyone)
+        :ARG2 (l / life
+            :ARG1-of (p2 / private-02)))
+    :op2 (r / right-05
+        :ARG1 e2
+        :ARG2 (c / caused-motion-91
+            :polarity -
+            :ARG1 (l2 / life
+                :ARG1-of (p3 / personal-02
+                    :ARG2 e2))
+            :ARG2 (t / through
+                :op1 (m / mud))
+            :ARG3 (d / drag-01
+                :ARG1 l2)
+            :purpose (o / or
+                :op1 (s / score-01
+                    :ARG3 (p4 / point)
+                    :mod (p5 / politics))
+                :op2 (c2 / consume-01
+                    :ARG0 (p6 / public)
+                    :ARG1 l2
+                    :ARG1-of (g / general-02))))
+        :ARG1-of (r2 / regardless-91
+            :ARG2 e2))
+    :mod (f / fundamental))""
+"
+Intransitive Motion,"I want you to update the AMR graph to include the new roleset intransitive-motion-91.
+
+Intransitive Motion Construction have a theme that carries out event that causes or accompanies movement in space.
+
+An example sentence with Intransitive Motion Construction:
+The fly buzzed into the room
+
+the auto generated graph is:
+""(z0 / fly-01
+    :ARG1-of (z1 / fly-01)
+    :destination (z2 / room))""
+
+The issue with this is: 
+Fly.01?? Buzz not represented 
+It gives us an inaccurate meaning like:”One flying event is the passenger of another flying event into the room.” 
+
+If we were to fix this to represent the actual meaning we would use Intransitive-Motion.91:
+Arg1-theme: The fly
+Arg2-goal: into the room
+Arg3-concomitant-event: buzz.01
+(Arg0: the fly)
+
+
+Another Common Current AMR Treatment: Intransitive Motion
+Sentence: He ran out of the house.
+
+auto AMR:
+""(z0 / run-02
+    :ARG0 (z1 / he)
+    :direction (z2 / out-of
+                   :op1 (z3 / house)))""
+
+Issue:
+Run.02 (Motion semantics align with Intransitive Motion) 
+ARG0-PPT: runner
+ARG1-LOC: course, race, distance
+ARG2-PPT: opponent 
+
+fix with Intransitive-Motion.91:
+Arg1-theme: He
+Arg2-goal: out of the house
+Arg3-concomitant-event: ran-01
+  (Arg0: he)
+
+
+Additional examples:
+
+Sentence: The Weweantic River FLOWS through the pond.
+
+auto-amr:
+""(z0 / flow-01
+    :ARG1 (z1 / river
+              :wiki ""Weweantic_River""
+              :name (z2 / name
+                        :op1 ""Weweantic""
+                        :op2 ""River""))
+    :path (z3 / pond))""
+
+manually corrected AMR:
+""(i / intransitive-motion-91
+    :ARG1 (r / river
+              :wiki ""Weweantic_River""
+              :name (n / name
+                        :op1 ""Weweantic""
+                        :op2 ""River""))
+    :ARG2 (p / pond)
+    :ARG3 (f / flow-01
+              :ARG1 r))""
+
+
+Sentence: Proposals to deport convicts serving time for nonviolent crimes before they were paroled have failed to gain support from legislative leaders, who feared if they were paroled and returned home they would simply SLIP back across the border into Texas.
+
+auto-amr: 
+""(z0 / fail-01
+    :ARG1 (z1 / propose-01
+              :ARG1 (z2 / deport-01
+                        :ARG1 (z3 / person
+                                  :ARG1-of (z4 / convict-01)
+                                  :ARG0-of (z5 / serve-04
+                                               :ARG1 (z6 / time)
+                                               :ARG2 (z7 / crime-02
+                                                         :mod (z8 / violence
+                                                                  :polarity -))
+                                               :time (z9 / before
+                                                         :op1 (z10 / parole-01
+                                                                   :ARG1 z3))))))
+    :ARG2 (z11 / gain-02
+               :ARG0 z1
+               :ARG1 (z12 / support-01
+                          :ARG0 (z13 / person
+                                     :ARG0-of (z14 / lead-02
+                                                   :ARG1 (z15 / government-organization
+                                                              :ARG0-of (z16 / legislate-01)))
+                                     :ARG0-of (z17 / fear-01
+                                                   :ARG1 (z18 / slip-01
+                                                              :ARG1 z3
+                                                              :ARG4 (z19 / across
+                                                                         :op1 (z20 / border))
+                                                              :direction (z21 / back)
+                                                              :destination (z22 / state
+                                                                                :wiki ""Texas""
+                                                                                :name (z23 / name
+                                                                                           :op1 ""Texas""))
+                                                              :ARG1-of (z24 / simple-02)
+                                                              :condition z10
+                                                              :ARG1-of (z25 / return-01
+                                                                            :ARG4 (z26 / home)))))
+                          :ARG1 z1)))""
+
+manually corrected AMR:
+""(f / fail-01
+    :ARG1 (p / propose-01
+        :ARG1 (d / deport-01
+            :ARG1 (c / person
+                :ARG1-of (c2 / convict-01)
+                :ARG0-of (s / serve-04
+                    :ARG1 (t / time)
+                    :ARG2 (c3 / crime-02
+                        :mod (v / violence
+                            :polarity -))
+                    :time (b / before
+                        :op1 (p2 / parole-01
+                            :ARG1 c))))))
+
+    :ARG2 (g / gain-02
+        :ARG0 p
+        :ARG1 (s2 / support-01
+            :ARG1 p)
+        :ARG2 (l / person
+            :ARG0-of (l2 / lead-02
+                :ARG1 (g2 / government-organization
+                    :ARG0-of (l3 / legislate-01)))
+            :ARG0-of (f2 / fear-01
+                :ARG1 (i / intransitive-motion-91
+                    :ARG1 c
+                    :ARG2 (i2 / into
+                        :op1 (s3 / state
+                            :wiki ""Texas""
+                            :name (n / name :op1 ""Texas"")))
+                    :path (a / across
+                        :op1 (b2 / border))
+                    :ARG3 (s4 / slip-01
+                        :ARG1 c
+                        :direction (b3 / back))
+                    :condition (a2 / and
+                        :op1 (p3 / parole-01
+                            :ARG1 c)
+                        :op2 (r / return-01
+                            :ARG1 c
+                            :ARG4 (h / home))))))))""
+
+
+Sentence: The river Avon has been strolled along by thousands of famous people throughout history. 
+
+auto-amr:
+""(z0 / stroll-01
+    :ARG0 (z1 / person
+              :ARG1-of (z2 / fame-01)
+              :quant (z3 / multiple
+                         :op1 1000))
+    :ARG1 (z4 / river
+              :wiki ""Avon_River""
+              :name (z5 / name
+                        :op1 ""Avon""))
+    :path (z6 / along)
+    :duration (z7 / history))""
+
+manually corrected AMR:
+""(i / intransitive-motion-91
+    :ARG1 (p / person
+        :ARG1-of (f / fame-01)
+        :quant (q / multiple
+            :op1 1000))
+    :ARG2 (a / along
+        :op1 (r / river
+            :wiki ""Avon_River""
+            :name (n / name :op1 ""Avon"")))
+    :ARG3 (s / stroll-01
+        :ARG0 p)
+    :duration (h / history))""
+"
+Ditransitives,"I want you to update the AMR graph to include the new roleset ditransitive-91.
+
+Ditransitive Construction is when an Agent carries out an event that is construed as causing a recipient to receive a theme.
+
+An example sentence with Ditransitive Construction
+They're going to kill Reagan a commie
+
+the auto generated graph is:
+""(z0 / kill-01
+    :ARG0 (z1 / they)
+    :ARG1 (z2 / person
+              :wiki ""Ronald_Reagan""
+              :name (z3 / name
+                        :op1 ""Reagan"")
+              :mod (z4 / commie)))""
+
+The issue with this is: 
+Kill.01
+ARG0-PAG: killer
+ARG1-PPT: corpse
+ARG2-MNR: instrument
+“They killed Ronald Reagan, who is a commie” is the meaning we get, which is incorrect.
+
+If we were to fix this to represent the actual meaning we would use Ditransitive.91:
+Arg0-Cause: They
+Arg1-Theme: a commie
+Arg2-Recipient: Reagan
+Arg3-Concomitant-event: kill 
+
+
+Another Common Current AMR Treatment (ok): Ditransitive
+
+Sentence: Jack poured Jane an arsenic-laced martini.
+
+auto generated AMR:
+""(z0 / pour-01
+    :ARG0 (z1 / person
+              :wiki -
+              :name (z2 / name
+                        :op1 ""Jack""))
+    :ARG1 (z3 / martini
+              :ARG1-of (z4 / lace-01
+                           :ARG2 (z5 / arsenic)))
+    :ARG4 (z6 / person
+              :wiki -
+              :name (z7 / name
+                        :op1 ""Jane"")))""
+
+The issue:
+Pour.01
+ARG0-PAG: agent, pourer
+ARG1-PPT: liquid
+ARG2-DIR: source
+ARG3-GOL: destination
+“Jack poured an arsenic laced martini (?) Jane”  which is not a great interpretation
+
+we can fix this with Ditransitive.91:
+Arg0-Cause: Jack
+Arg1-Theme: an arsenic laced martini
+Arg2-Recipient: Jane
+Arg3-Concomitant-event: pour.01
+(arg0: Jack, Arg1: martini)
+
+
+Additional examples:
+
+Sentence: Jack passed her the salt.
+
+auto-amr:
+""(z0 / pass-05
+    :ARG0 (z1 / person
+              :wiki -
+              :name (z2 / name
+                        :op1 ""Jack""))
+    :ARG1 (z3 / salt)
+    :ARG2 (z4 / she))""
+
+manually corrected AMR:
+(d / ditransitive-91
+    :ARG0 (j / person
+              :wiki -
+              :name (n / name
+                        :op1 ""Jack""))
+    :ARG1 (s / salt)
+    :ARG2 (s2 / she)
+    :ARG3 (p / pass-05
+              :ARG0 j
+              :ARG1 s
+              :ARG2 s2))
+
+
+Sentence: I no longer think the US Constitution AFFORDS me rights as a citizen .
+
+auto-amr:
+""(z0 / think-01
+    :ARG0 (z1 / i)
+    :ARG1 (z2 / afford-02
+              :ARG0 (z3 / law
+                        :wiki ""United_States_Constitution""
+                        :name (z4 / name
+                                  :op1 ""US""
+                                  :op2 ""Constitution""))
+              :ARG1 (z5 / right-05
+                        :ARG1 z1
+                        :prep-as (z6 / citizen))
+              :ARG2 z1)
+    :time (z7 / no-longer))""
+
+manually corrected AMR:
+""(t / think-01
+    :ARG0 (i / i)
+    :time(n2 / no-longer)
+    :ARG1 (d / ditransitive-91
+        :ARG0 (l / law
+            :wiki ""United_States_Constitution""
+            :name (n / name
+                :op1 ""US""
+                :op2 ""Constitution""))
+        :ARG1 (r / right-05
+            :ARG1 i
+            :prep-as (c / citizen))
+        :ARG2 i
+        :ARG3 (a / afford-02
+            :ARG0 l
+            :ARG1 r
+            :ARG2 i)))""
+
+
+Sentence: These skates were bought for me by my mom.
+
+auto-amr: 
+""(z0 / buy-01
+    :ARG0 (z1 / person
+              :ARG0-of (z2 / have-rel-role-91
+                           :ARG1 (z3 / i)
+                           :ARG2 (z4 / mom)))
+    :ARG1 (z5 / skate
+              :mod (z6 / this))
+    :ARG4 z3)""
+
+manually corrected AMR:
+""(d / ditransitive-91
+    :ARG0 (m / person
+        :ARG0-of (h / have-rel-role-91
+            :ARG1 (i / me)
+            :ARG2 (m2 / mom)))
+    :ARG1 (s / skates
+        :mod (t / this))
+    :ARG2 i
+    :ARG3 (b / buy-01
+        :ARG0 m
+        :ARG1 s
+        :ARG4 i))"""
